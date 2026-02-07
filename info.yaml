@@ -26,10 +26,10 @@ pinout:
   ui[7]: ""
 
   # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
+  uo[0]: "Counter Bit #0"
+  uo[1]: "Counter Bit #1"
+  uo[2]: "Counter Bit #2"
+  uo[3]: "Counter Bit #3"
   uo[4]: ""
   uo[5]: ""
   uo[6]: ""
