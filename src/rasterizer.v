@@ -37,6 +37,31 @@ module tt_um_tomolt_rasterizer (
 
   reg [59:0] geometry;
 
+  wire cs_n = uio_in[0];
+  wire mosi = uio_in[1];
+  wire sck  = uio_in[3];
+
+  reg [59:0] in_buffer;
+  reg [5:0]  in_count;
+
+  always @(negedge rst_n or posedge sck or posedge cs_n) begin
+    if (~rst_n) begin
+      in_buffer <= 0;
+      in_count <= 0;
+    end else begin
+      if (~cs_n) begin
+        in_buffer <= {in_buffer[59-1:0], mosi};
+        if (in_count == 59) begin
+          geometry <= in_buffer;
+        end
+        in_count <= in_count + 1;
+      end else begin
+        in_buffer <= 0;
+        in_count <= 0;
+      end
+    end
+  end
+
   /*
   reg [4:0] permut_1;
   reg [4:0] permut_2;
@@ -91,6 +116,7 @@ module tt_um_tomolt_rasterizer (
   };
   */
 
+ /*
   wire [59:0] geometry_1 = {
     10'd100, 10'd1,
     10'd150, 10'd100,
@@ -125,6 +151,7 @@ module tt_um_tomolt_rasterizer (
       end
     end
   end
+  */
 
   wire fill;
 
@@ -137,7 +164,8 @@ module tt_um_tomolt_rasterizer (
     .fill(fill)
   );
 
-  wire [2:0] value = fill ? geometry_sel : 3'b000;
+  //wire [2:0] value = fill ? geometry_sel : 3'b000;
+  wire [2:0] value = fill ? 3'b111 : 3'b000;
 
   assign rgb = display_on ? value : 0;
 
