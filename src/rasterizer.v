@@ -41,6 +41,7 @@ module tt_um_tomolt_rasterizer (
     10'd600, 10'd320
   };
 
+`ifdef SERIAL_GEOMETRY
   reg [59:0] geometry;
 
   localparam
@@ -112,6 +113,9 @@ module tt_um_tomolt_rasterizer (
       end
     end
   end
+`else
+  wire [59:0] geometry = default_geometry;
+`endif
 
   /*
   reg [4:0] permut_1;
