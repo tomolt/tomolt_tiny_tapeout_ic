@@ -1,21 +1,33 @@
-/*
+/* 
  * Copyright (c) 2026 Thomas Oltmann
  * SPDX-License-Identifier: Apache-2.0
  * vim: sts=2 ts=2 sw=2 et
  */
 
-module rasterizer(clk, reset, hsync, vsync, rgb);
-  input clk, reset;
-  output hsync, vsync;
-  output reg [2:0] rgb;
-  wire display_on;
+`default_nettype none
 
+module tt_um_tomolt_rasterizer (
+  input  wire [7:0] ui_in,    // Dedicated inputs
+  output wire [7:0] uo_out,   // Dedicated outputs
+  input  wire [7:0] uio_in,   // IOs: Input path
+  output wire [7:0] uio_out,  // IOs: Output path
+  output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
+  input  wire       ena,      // always 1 when the design is powered, so you can ignore it
+  input  wire       clk,      // clock
+  input  wire       rst_n     // reset_n - low to reset
+);
+
+  wire hsync;
+  wire vsync;
+  wire [2:0] rgb;
+  wire display_on;
   wire [9:0] hpos;
   wire [9:0] vpos;
+  wire hvreset = !rst_n;
 
   hvsync_generator hvsync_gen(
     .clk(clk),
-    .reset(reset),
+    .reset(hvreset),
     .hsync(hsync),
     .vsync(vsync),
     .display_on(display_on),
@@ -30,8 +42,8 @@ module rasterizer(clk, reset, hsync, vsync, rgb);
   reg permut_2_dir;
 
   // Animate the geometry just a tiny bit to make it more interesting.
-  always @(posedge vsync, posedge reset) begin
-    if (reset) begin
+  always @(posedge vsync, negedge rst_n) begin
+    if (!rst_n) begin
       permut_1 <= 0;
       permut_1_dir <= 1;
       permut_2 <= 0;
@@ -87,8 +99,8 @@ module rasterizer(clk, reset, hsync, vsync, rgb);
 
   reg [2:0] geometry_sel;
 
-  always @(posedge clk, posedge reset) begin
-    if (reset || hpos == 640) begin
+  always @(posedge clk, negedge rst_n) begin
+    if (hpos == 640) begin
       if (vpos+1 < geometry_2[49:40]) begin
         geometry_sel <= 3'b001;
       end else if (vpos+1 < geometry_3[49:40]) begin
@@ -105,7 +117,7 @@ module rasterizer(clk, reset, hsync, vsync, rgb);
 
   triscan tscan(
     .clk(clk),
-    .reset(reset),
+    .rst_n(rst_n),
     .hsync(hsync),
     .vsync(vsync),
     .hpos(hpos),
@@ -117,6 +129,16 @@ module rasterizer(clk, reset, hsync, vsync, rgb);
   wire [2:0] value = fill ? geometry_sel : 3'b000;
 
   assign rgb = display_on ? value : 0;
+
+  // TinyVGA PMOD
+  assign uo_out = {hsync, rgb[2], rgb[1], rgb[0], vsync, rgb[2], rgb[1], rgb[0]};
+
+  // Unused outputs assigned to 0.
+  assign uio_out = 0;
+  assign uio_oe  = 0;
+
+  // Suppress unused signals warning
+  wire _unused_ok = &{ena, ui_in, uio_in};
 
 endmodule
 

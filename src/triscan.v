@@ -8,7 +8,7 @@
 
 module triscan(
   input wire clk,
-  input wire reset,
+  input wire rst_n,
   input wire hsync,
   input wire vsync,
   input wire [9:0] hpos,
@@ -63,8 +63,8 @@ module triscan(
     end
   endfunction
   
-  always @(posedge clk, posedge reset) begin
-    if (reset) begin
+  always @(posedge clk, negedge rst_n) begin
+    if (!rst_n) begin
       state <= STATE_CLEAR;
       
     end else if (hpos == 641) begin
