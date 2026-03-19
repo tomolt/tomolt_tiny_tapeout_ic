@@ -60,7 +60,14 @@ module tt_um_tomolt_rasterizer (
 
   reg sck_prev;
 
-  always @(negedge rst_n or posedge clk) begin
+  // If we update the geometry synchronous to the rising edge of the clock,
+  // the PDK will insert an excessive number of delay buffers so that the
+  // triscan can see the old, buffered values. Of course, we won't render the
+  // triangle and update it at the same time, so this is not helpful to us.
+  // As a workaround, only update the geometry on the falling edge of the
+  // clock. That way, it is stable over the positive edge, and hopefully no
+  // delay buffers need to be inserted.
+  always @(negedge rst_n or negedge clk) begin
     if (~rst_n) begin
       geometry <= default_geometry;
       sck_prev <= 0;
