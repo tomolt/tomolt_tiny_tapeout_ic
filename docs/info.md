@@ -1,3 +1,14 @@
+## Overview
+
+This is a crude ASIC triangle rasterizer that generates VGA signals, in a single tile.
+It imitates the functionality of a basic fixed-function graphics processor:
+It receives geometry from an external device and rasterizes it into an image signal that can be viewed on a computer monitor.
+Except whereas even the oldest 3D graphics processors were capable of processing hundreds or thousands of triangles per frame,
+this humble project only manages one measly triangle per frame [^1].
+
+[^1]: More than one triangle per frame is possible if the geometry is swapped-out mid-frame,
+but only if these triangles are separated vertically.
+
 ## How it works
 
 A classic scanline rasterization algorithm is run in sync with the VGA clock.
@@ -32,7 +43,7 @@ But V1 and V3 may not have the same Y value (If V1.Y == V2.Y == V3.Y, there is n
 Each vertex coordinate (X or Y) has 6 bits of precision.
 Each step by one of a coordinate corresponds to an offset by 8 pixels.
 
-## Serial interface
+## The serial interface
 
 The serial interface behaves like a one-way SPI (or Microwire) slave device.
 A bit is read from the MOSI pin on every positive edge of the SCK pin, but only if CS is low.
