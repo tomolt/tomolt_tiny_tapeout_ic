@@ -34,26 +34,26 @@ module tt_um_tomolt_rasterizer (
     .vpos(vpos)
   );
 
-  wire [23:0] default_vgeometry = {
-    4'd4, 4'd2,
-    4'd2, 4'd5,
-    4'd9, 4'd3
+  wire [35:0] default_vgeometry = {
+    6'd15, 6'd9,
+    6'd7, 6'd21,
+    6'd35, 6'd11
   };
 
   wire [5:0] default_color = 6'b000011;
 
 `define SERIAL_GEOMETRY 1
 `ifdef SERIAL_GEOMETRY
-  reg [23:0] vgeometry;
+  reg [35:0] vgeometry;
   reg [5:0] color;
 
   wire [59:0] geometry = {
-    vgeometry[23:20], 6'd0, 
-    vgeometry[19:16], 6'd0, 
-    vgeometry[15:12], 6'd0, 
-    vgeometry[11: 8], 6'd0, 
-    vgeometry[ 7: 4], 6'd0, 
-    vgeometry[ 3: 0], 6'd0
+    vgeometry[35:30], 4'd0, 
+    vgeometry[29:24], 4'd0, 
+    vgeometry[23:18], 4'd0, 
+    vgeometry[17:12], 4'd0, 
+    vgeometry[11: 6], 4'd0, 
+    vgeometry[ 5: 0], 4'd0
   };
 
   localparam
@@ -91,12 +91,12 @@ module tt_um_tomolt_rasterizer (
           // fail the timing checks. So instead, we treat every 10-bit word
           // as its own little shift register.
           case (serial_state)
-            SERIAL_V1X: vgeometry[23:20] <= {vgeometry[23-1:20], mosi};
-            SERIAL_V1Y: vgeometry[19:16] <= {vgeometry[19-1:16], mosi};
-            SERIAL_V2X: vgeometry[15:12] <= {vgeometry[15-1:12], mosi};
-            SERIAL_V2Y: vgeometry[11: 8] <= {vgeometry[11-1: 8], mosi};
-            SERIAL_V3X: vgeometry[ 7: 4] <= {vgeometry[ 7-1: 4], mosi};
-            SERIAL_V3Y: vgeometry[ 3: 0] <= {vgeometry[ 3-1: 0], mosi};
+            SERIAL_V1X: vgeometry[35:30] <= {vgeometry[35-1:30], mosi};
+            SERIAL_V1Y: vgeometry[29:24] <= {vgeometry[29-1:24], mosi};
+            SERIAL_V2X: vgeometry[23:18] <= {vgeometry[23-1:18], mosi};
+            SERIAL_V2Y: vgeometry[17:12] <= {vgeometry[17-1:12], mosi};
+            SERIAL_V3X: vgeometry[11: 6] <= {vgeometry[11-1: 6], mosi};
+            SERIAL_V3Y: vgeometry[ 5: 0] <= {vgeometry[ 5-1: 0], mosi};
             SERIAL_COL: color <= {color[5-1:0], mosi};
             default:;
           endcase

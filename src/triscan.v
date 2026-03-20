@@ -47,6 +47,7 @@ module triscan(
 
   wire md_load = (hpos == 640 + 10) || (hpos == 640 + 50);
   wire [9:0] md_quo;
+
   wire [9:0] md_rem;
   
   serial_muldiv muldiv(
