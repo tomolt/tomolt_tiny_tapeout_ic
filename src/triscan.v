@@ -22,6 +22,7 @@ module triscan(
   wire [9:0] vtx_3_x = geometry[19:10];
   wire [9:0] vtx_3_y = geometry[ 9: 0];
   
+  /*
   wire [9:0] left_x1 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_1_x : vtx_2_x;
   wire [9:0] left_y1 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_1_y : vtx_2_y;
   wire [9:0] left_x2 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_2_x : vtx_3_x;
@@ -40,6 +41,17 @@ module triscan(
   wire [9:0] edge_dx_abs = hpos < 640 + 49 ? left_dx_abs : right_dx_abs;
   wire [9:0] edge_dy = hpos < 640 + 49 ? left_dy : right_dy;
   wire [9:0] edge_dist = hpos < 640 + 49 ? (vpos+10'd1) - left_y1 : (vpos+10'd1) - (right_y1);
+  */
+
+  // TEMP Nonsense assigments to see if this would at least synthesize
+  // successfully!
+  wire [9:0] left_x1 = vtx_2_x;
+  wire [9:0] right_x1 = vtx_3_x;
+  wire [9:0] left_x2 = vtx_3_x;
+  wire [9:0] right_x2 = vtx_2_x;
+  wire [9:0] edge_dx_abs = vtx_1_x;
+  wire [9:0] edge_dy = vtx_1_y;
+  wire [9:0] edge_dist = vtx_2_y;
   
   wire md_load = (hpos == 640 + 10) || (hpos == 640 + 50);
   
