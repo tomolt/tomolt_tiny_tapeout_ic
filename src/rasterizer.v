@@ -34,18 +34,27 @@ module tt_um_tomolt_rasterizer (
     .vpos(vpos)
   );
 
-  wire [59:0] default_geometry = {
-    10'd500, 10'd120,
-    10'd350, 10'd220,
-    10'd600, 10'd320
+  wire [23:0] default_vgeometry = {
+    4'd4, 4'd2,
+    4'd2, 4'd5,
+    4'd9, 4'd3
   };
 
   wire [5:0] default_color = 6'b000011;
 
 `define SERIAL_GEOMETRY 1
 `ifdef SERIAL_GEOMETRY
-  reg [59:0] geometry;
+  reg [23:0] vgeometry;
   reg [5:0] color;
+
+  wire [59:0] geometry = {
+    vgeometry[23:20], 6'd0, 
+    vgeometry[19:16], 6'd0, 
+    vgeometry[15:12], 6'd0, 
+    vgeometry[11: 8], 6'd0, 
+    vgeometry[ 7: 4], 6'd0, 
+    vgeometry[ 3: 0], 6'd0
+  };
 
   localparam
     SERIAL_V1X = 3'b000,
@@ -65,16 +74,9 @@ module tt_um_tomolt_rasterizer (
 
   reg sck_prev;
 
-  // If we update the geometry synchronous to the rising edge of the clock,
-  // the PDK will insert an excessive number of delay buffers so that the
-  // triscan can see the old, buffered values. Of course, we won't render the
-  // triangle and update it at the same time, so this is not helpful to us.
-  // As a workaround, only update the geometry on the falling edge of the
-  // clock. That way, it is stable over the positive edge, and hopefully no
-  // delay buffers need to be inserted.
   always @(negedge rst_n or posedge clk) begin
     if (~rst_n) begin
-      geometry <= default_geometry;
+      vgeometry <= default_vgeometry;
       color <= default_color;
       sck_prev <= 0;
       serial_state <= SERIAL_V1X;
@@ -89,14 +91,12 @@ module tt_um_tomolt_rasterizer (
           // fail the timing checks. So instead, we treat every 10-bit word
           // as its own little shift register.
           case (serial_state)
-            //SERIAL_V1X: geometry[59:50] <= {geometry[59-1:50], mosi};
-            SERIAL_V1Y: geometry[49:40] <= {geometry[49-1:40], mosi};
-            //SERIAL_V2X: geometry[39:30] <= {geometry[39-1:30], mosi};
-            /*
-            SERIAL_V2Y: geometry[29:20] <= {geometry[29-1:20], mosi};
-            SERIAL_V3X: geometry[19:10] <= {geometry[19-1:10], mosi};
-            SERIAL_V3Y: geometry[ 9: 0] <= {geometry[ 9-1: 0], mosi};
-            */
+            SERIAL_V1X: vgeometry[23:20] <= {vgeometry[23-1:20], mosi};
+            SERIAL_V1Y: vgeometry[19:16] <= {vgeometry[19-1:16], mosi};
+            SERIAL_V2X: vgeometry[15:12] <= {vgeometry[15-1:12], mosi};
+            SERIAL_V2Y: vgeometry[11: 8] <= {vgeometry[11-1: 8], mosi};
+            SERIAL_V3X: vgeometry[ 7: 4] <= {vgeometry[ 7-1: 4], mosi};
+            SERIAL_V3Y: vgeometry[ 3: 0] <= {vgeometry[ 3-1: 0], mosi};
             SERIAL_COL: color <= {color[5-1:0], mosi};
             default:;
           endcase
