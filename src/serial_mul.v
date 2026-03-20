@@ -22,11 +22,11 @@ module serial_mul #(parameter WIDTH = 10) (
     end else begin
       if (state < WIDTH) begin
         if (window[WIDTH-1]) begin
-          product = {product[2*WIDTH-2:0], 1'b0} + n2;
+          product <= {product[2*WIDTH-2:0], 1'b0} + n2;
         end else begin
-          product = {product[2*WIDTH-2:0], 1'b0};
+          product <= {product[2*WIDTH-2:0], 1'b0};
         end
-        window = {window[WIDTH-2:0], 1'b0};
+        window <= {window[WIDTH-2:0], 1'b0};
         state <= state + 1;
       end
     end

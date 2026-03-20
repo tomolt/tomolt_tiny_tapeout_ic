@@ -21,6 +21,7 @@ project:
     - "rasterizer.v"
     - "serial_div.v"
     - "serial_mul.v"
+    - "serial_muldiv.v"
     - "triscan.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
