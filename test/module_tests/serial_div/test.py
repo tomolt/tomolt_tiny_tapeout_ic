@@ -16,11 +16,14 @@ async def check_division(dut, num, den):
     dut.load.value = 1
     await ClockCycles(dut.clk, 1)
     dut.load.value = 0
-    await ClockCycles(dut.clk, 2*WIDTH)
+    await ClockCycles(dut.clk, 3*WIDTH)
     quo = dut.quo.value
     rem = dut.rem.value
 
-    assert (quo, rem) == divmod(num, den)
+    (actual_quo, actual_rem) = divmod(num, den)
+    mask = (1 << WIDTH) - 1
+
+    assert (quo, rem) == (actual_quo & mask, actual_rem & mask)
 
 @cocotb.test()
 async def test_project(dut):
@@ -40,3 +43,10 @@ async def test_project(dut):
     await check_division(dut, 991, 991)
     await check_division(dut, 991, 990)
     await check_division(dut, (1 << 10) - 1, (1 << 10) - 1)
+    await check_division(dut, 568 * 319, 237)
+    await check_division(dut, 568 * 319, 1)
+    await check_division(dut, 568 * 319, (1 << 10) - 1)
+    await check_division(dut, (1 << 10) - 1, (1 << 10) - 1)
+    await check_division(dut, (1 << 20) - 1, (1 << 10) - 1)
+    await check_division(dut, (1 << 20) - 1, 1)
+    await check_division(dut, 0, (1 << 10) - 1)

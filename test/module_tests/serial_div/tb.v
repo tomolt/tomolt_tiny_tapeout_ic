@@ -18,7 +18,7 @@ module tb ();
   // Wire up the inputs and outputs:
   reg clk;
   reg load;
-  reg [WIDTH-1:0] num;
+  reg [2*WIDTH-1:0] num;
   reg [WIDTH-1:0] den;
   wire [WIDTH-1:0] quo;
   wire [WIDTH-1:0] rem;
