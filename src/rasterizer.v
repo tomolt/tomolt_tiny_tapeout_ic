@@ -41,7 +41,7 @@ module tt_um_tomolt_rasterizer (
     10'd600, 10'd320
   };
 
-`define SERIAL_GEOMETRY 1
+`define SERIAL_GEOMETRY 0
 `ifdef SERIAL_GEOMETRY
   reg [59:0] geometry;
 
@@ -115,7 +115,11 @@ module tt_um_tomolt_rasterizer (
     end
   end
 `else
-  wire [59:0] geometry = default_geometry;
+  reg [59:0] geometry;
+
+  always @(negedge rst_n or negedge clk) begin
+    geometry <= default_geometry;
+  end
 `endif
 
   /*
