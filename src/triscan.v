@@ -22,16 +22,16 @@ module triscan(
   wire [9:0] vtx_3_x = geometry[19:10];
   wire [9:0] vtx_3_y = geometry[ 9: 0];
   
-  // These should (hopefully) be synthesized fully combinationally
-  reg [9:0] left_x1;
-  reg [9:0] left_y1;
-  reg [9:0] left_x2;
-  reg [9:0] left_y2;
-  reg [9:0] right_x1;
-  reg [9:0] right_y1;
-  reg [9:0] right_x2;
-  reg [9:0] right_y2;
-
+  wire [9:0] left_x1 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_1_x : vtx_2_x;
+  wire [9:0] left_y1 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_1_y : vtx_2_y;
+  wire [9:0] left_x2 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_2_x : vtx_3_x;
+  wire [9:0] left_y2 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_2_y : vtx_3_y;
+  
+  wire [9:0] right_x1 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_1_x : vtx_3_x;
+  wire [9:0] right_y1 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_1_y : vtx_3_y;
+  wire [9:0] right_x2 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_3_x : vtx_2_x;
+  wire [9:0] right_y2 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_3_y : vtx_2_y;
+  
   wire [9:0] edge_dx = (hpos < 640 + 49 ? (left_x2 - left_x1) : (right_x2 - right_x1));
   wire [9:0] edge_dy = (hpos < 640 + 49 ? (left_y2 - left_y1) : (right_y2 - right_y1));
   wire [9:0] edge_top = (hpos < 640 + 49 ? left_y1 : right_y1);
@@ -53,52 +53,6 @@ module triscan(
     .quo(md_quo),
     .rem(md_rem)
   );
-  
-  always @(*) begin
-    case (state)
-      STATE_V1, STATE_V1_V3: begin
-        left_x1 = vtx_1_x;
-        left_y1 = vtx_1_y;
-        left_x2 = vtx_2_x;
-        left_y2 = vtx_2_y;
-      end
-      STATE_V1_V2: begin
-        left_x1 = vtx_2_x;
-        left_y1 = vtx_2_y;
-        left_x2 = vtx_3_x;
-        left_y2 = vtx_3_y;
-      end
-      STATE_CLEAR: begin
-        left_x1 = 10'bx;
-        left_y1 = 10'bx;
-        left_x2 = 10'bx;
-        left_y2 = 10'bx;
-      end
-    endcase
-  end
-  
-  always @(*) begin
-    case (state)
-      STATE_V1, STATE_V1_V2: begin
-        right_x1 = vtx_1_x;
-        right_y1 = vtx_1_y;
-        right_x2 = vtx_3_x;
-        right_y2 = vtx_3_y;
-      end
-      STATE_V1_V3: begin
-        right_x1 = vtx_3_x;
-        right_y1 = vtx_3_y;
-        right_x2 = vtx_2_x;
-        right_y2 = vtx_2_y;
-      end
-      STATE_CLEAR: begin
-        right_x1 = 10'bx;
-        right_y1 = 10'bx;
-        right_x2 = 10'bx;
-        right_y2 = 10'bx;
-      end
-    endcase
-  end
 
   // The state of the triangle scanline rasterizer is determined
   // by which vertices of the triangle we have already scanned over vertically.
