@@ -10,8 +10,8 @@ module serial_muldiv #(parameter WIDTH = 10) (
   input wire [WIDTH-1:0] mu1,
   input wire [WIDTH-1:0] mu2,
   input wire [WIDTH-1:0] den,
-  output reg [WIDTH-1:0] quo,
-  output reg [WIDTH-1:0] rem);
+  output wire [WIDTH-1:0] quo,
+  output wire [WIDTH-1:0] rem);
 
   reg [4:0] state;
   reg [4*WIDTH-1:0] accum;
