@@ -41,9 +41,12 @@ module tt_um_tomolt_rasterizer (
     10'd600, 10'd320
   };
 
+  wire [5:0] default_color = 6'b000011;
+
 `define SERIAL_GEOMETRY 1
 `ifdef SERIAL_GEOMETRY
   reg [59:0] geometry;
+  reg [5:0] color;
 
   localparam
     SERIAL_V1X = 3'b000,
@@ -51,7 +54,8 @@ module tt_um_tomolt_rasterizer (
     SERIAL_V2X = 3'b010,
     SERIAL_V2Y = 3'b011,
     SERIAL_V3X = 3'b100,
-    SERIAL_V3Y = 3'b101;
+    SERIAL_V3Y = 3'b101,
+    SERIAL_COL = 3'b110;
 
   wire cs_n = uio_in[0];
   wire mosi = uio_in[1];
@@ -72,6 +76,7 @@ module tt_um_tomolt_rasterizer (
   always @(negedge rst_n or negedge clk) begin
     if (~rst_n) begin
       geometry <= default_geometry;
+      color <= default_color;
       sck_prev <= 0;
       serial_state <= SERIAL_V1X;
       serial_count <= 0;
@@ -85,17 +90,20 @@ module tt_um_tomolt_rasterizer (
           // fail the timing checks. So instead, we treat every 10-bit word
           // as its own little shift register.
           case (serial_state)
+            /*
             SERIAL_V1X: geometry[59:50] <= {geometry[59-1:50], mosi};
             SERIAL_V1Y: geometry[49:40] <= {geometry[49-1:40], mosi};
             SERIAL_V2X: geometry[39:30] <= {geometry[39-1:30], mosi};
             SERIAL_V2Y: geometry[29:20] <= {geometry[29-1:20], mosi};
             SERIAL_V3X: geometry[19:10] <= {geometry[19-1:10], mosi};
             SERIAL_V3Y: geometry[ 9: 0] <= {geometry[ 9-1: 0], mosi};
+            */
+            SERIAL_COL: color <= {color[5-1:0], mosi};
             default:;
           endcase
 
           if (serial_count == 9) begin
-            if (serial_state == SERIAL_V3Y) begin
+            if (serial_state == SERIAL_COL) begin
               serial_state <= SERIAL_V1X;
             end else begin
               serial_state <= serial_state + 1;
@@ -116,6 +124,7 @@ module tt_um_tomolt_rasterizer (
   end
 `else
   wire [59:0] geometry = default_geometry;
+  wire [5:0] color = default_color;
 `endif
 
   /*
@@ -214,15 +223,22 @@ module tt_um_tomolt_rasterizer (
     .fill(fill)
   );
 
-  wire [2:0] value = fill ? 3'b111 : 3'b000;
-
-  assign rgb = display_on ? value : 0;
+  wire [5:0] pixel = (display_on && fill) ? color : 6'b000000;
 
   // TinyVGA PMOD
-  assign uo_out = {hsync, rgb[2], rgb[1], rgb[0], vsync, rgb[2], rgb[1], rgb[0]};
+  assign uo_out[0] = pixel[1];
+  assign uo_out[1] = pixel[3];
+  assign uo_out[2] = pixel[5];
+  assign uo_out[3] = vsync;
+  assign uo_out[4] = pixel[0];
+  assign uo_out[5] = pixel[2];
+  assign uo_out[6] = pixel[4];
+  assign uo_out[7] = hsync;
 
   // Unused outputs assigned to 0.
   assign uio_out = 0;
+
+  // Configure all UIO pins as inputs.
   assign uio_oe  = 0;
 
   // Suppress unused signals warning

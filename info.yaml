@@ -46,10 +46,10 @@ pinout:
   uo[7]: "hsync"
 
   # Bidirectional pins
-  uio[0]: ""
-  uio[1]: ""
+  uio[0]: "CS"
+  uio[1]: "MOSI"
   uio[2]: ""
-  uio[3]: ""
+  uio[3]: "SCK"
   uio[4]: ""
   uio[5]: ""
   uio[6]: ""
