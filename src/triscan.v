@@ -26,28 +26,28 @@ module triscan(
   wire [9:0] left_y1 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_1_y : vtx_2_y;
   wire [9:0] left_x2 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_2_x : vtx_3_x;
   wire [9:0] left_y2 = (state == STATE_V1 || state == STATE_V1_V3) ? vtx_2_y : vtx_3_y;
+  wire left_sign = left_x1 > left_x2;
   
   wire [9:0] right_x1 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_1_x : vtx_3_x;
   wire [9:0] right_y1 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_1_y : vtx_3_y;
   wire [9:0] right_x2 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_3_x : vtx_2_x;
   wire [9:0] right_y2 = (state == STATE_V1 || state == STATE_V1_V2) ? vtx_3_y : vtx_2_y;
+  wire right_sign = right_x1 > right_x2;
 
-  wire [9:0] left_dx_abs = left_x1 <= left_x2 ? left_x2 - left_x1 : left_x1 - left_x2;
-  wire [9:0] left_dy = left_y2 - left_y1;
-  wire [9:0] right_dx_abs = right_x1 <= right_x2 ? right_x2 - right_x1 : right_x1 - right_x2;
-  wire [9:0] right_dy = right_y2 - right_y1;
-  
-  wire [9:0] edge_dx_abs = hpos < 640 + 49 ? left_dx_abs : right_dx_abs;
-  wire [9:0] edge_dy = hpos < 640 + 49 ? left_dy : right_dy;
-  wire [9:0] edge_dist = hpos < 640 + 49 ? (vpos+10'd1) - left_y1 : (vpos+10'd1) - (right_y1);
+  wire wired_to_left = hpos < 640 + 49;
+  wire [9:0] edge_x1 = wired_to_left ? left_x1 : right_x1;
+  wire [9:0] edge_y1 = wired_to_left ? left_y1 : right_y1;
+  wire [9:0] edge_x2 = wired_to_left ? left_x2 : right_x2;
+  wire [9:0] edge_y2 = wired_to_left ? left_y2 : right_y2;
+  wire edge_sign = wired_to_left ? left_sign : right_sign;
+
+  wire [9:0] edge_dx_abs = ~edge_sign ? edge_x2 - edge_x1 : edge_x1 - edge_x2;
+  wire [9:0] edge_dy = edge_y2 - edge_y1;
+  wire [9:0] edge_dist = (vpos + 10'd1) - edge_y1;
 
   wire md_load = (hpos == 640 + 10) || (hpos == 640 + 50);
-  
   wire [9:0] md_quo;
   wire [9:0] md_rem;
-  
-  reg [9:0] left_x;
-  reg [9:0] right_x;
   
   serial_muldiv muldiv(
     .clk(clk),
@@ -68,6 +68,7 @@ module triscan(
     STATE_CLEAR = 2'b11;
 
   reg [1:0] state;
+  reg [9:0] left_x;
   
   always @(posedge clk or negedge rst_n) begin
     if (~rst_n) begin
@@ -79,7 +80,7 @@ module triscan(
       // If we hit one of the vertices of the triangle, we have to change state.
       case (state)
         STATE_CLEAR:
-          if (vpos+1 == vtx_1_y) begin
+          if (vpos + 10'd1 == vtx_1_y) begin
             if (vtx_1_y == vtx_2_y) begin
               state <= STATE_V1_V2;
             end else begin
@@ -87,17 +88,17 @@ module triscan(
             end
           end
         STATE_V1:
-          if (vpos+1 == vtx_2_y) begin
+          if (vpos + 10'd1 == vtx_2_y) begin
             state     <= (vtx_2_y == vtx_3_y) ? STATE_CLEAR : STATE_V1_V2;
           end else if (vpos+1 == vtx_3_y) begin
             state     <= STATE_V1_V3;
           end
         STATE_V1_V2:
-          if (vpos+1 == vtx_3_y) begin
+          if (vpos + 10'd1 == vtx_3_y) begin
             state     <= STATE_CLEAR;
           end
         STATE_V1_V3:
-          if (vpos+1 == vtx_2_y) begin
+          if (vpos + 10'd1 == vtx_2_y) begin
             state     <= STATE_CLEAR;
           end
       endcase
@@ -105,19 +106,15 @@ module triscan(
     // Wait until the multiply-divide unit is done, then update the edge
     // position.
     end else if (hpos == 640 + 45) begin
-      if (left_x1 <= left_x2) begin
+      if (~left_sign) begin
         left_x <= left_x1 + md_quo;
       end else begin
         left_x <= left_x1 - md_quo;
       end
-    end else if (hpos == 640 + 85) begin
-      if (right_x1 <= right_x2) begin
-        right_x <= right_x1 + md_quo;
-      end else begin
-        right_x <= right_x1 - md_quo;
-      end
     end
   end
+
+  wire [9:0] right_x = ~right_sign ? right_x1 + md_quo : right_x1 - md_quo;
   
   assign fill = (state != STATE_CLEAR && hpos >= left_x && hpos < right_x);
 endmodule
