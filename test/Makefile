@@ -2,8 +2,18 @@
 
 TESTED_MODULES=serial_mul serial_div serial_muldiv prog_if
 
+ifneq ($(GATES),yes)
+
 TARGETS_ALL=$(addprefix all-, $(TESTED_MODULES))
 TARGETS_CLEAN=$(addprefix clean-, $(TESTED_MODULES))
+
+else
+
+# Gate-level simulation doesn't make sense for individual submodules
+TARGETS_ALL=
+TARGETS_CLEAN=
+
+endif
 
 .PHONY: all $(TARGETS_ALL) clean $(TARGETS_CLEAN)
 
