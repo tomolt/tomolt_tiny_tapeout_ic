@@ -78,7 +78,7 @@ module tt_um_tomolt_rasterizer (
     if (~rst_n) begin
       vgeometry <= default_vgeometry;
       color <= default_color;
-      sck_prev <= sck;
+      sck_prev <= 0;
       serial_state <= SERIAL_V1X;
       serial_count <= 0;
 

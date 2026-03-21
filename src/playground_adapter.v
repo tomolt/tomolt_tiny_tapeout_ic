@@ -70,7 +70,7 @@ module playground_adapter (
       serial_div <= 0;
       serial_cur <= 0;
       serial_cs <= 0;
-      prev_vsync <= vsync;
+      prev_vsync <= 0;
     end else begin
       prev_vsync <= vsync;
       if (~prev_vsync && vsync) begin
